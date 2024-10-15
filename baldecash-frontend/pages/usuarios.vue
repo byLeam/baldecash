@@ -33,11 +33,11 @@
       </tbody>
     </table>
 
-    <!-- Modal para crear usuario -->
+    <!-- Modal para crear/editar usuario -->
     <div v-if="isModalOpen" class="modal">
       <div class="modal-content">
         <span class="close" @click="closeModal">&times;</span>
-        <h2>Crear Usuario</h2>
+        <h2>{{ newUser.id ? 'Editar Usuario' : 'Crear Usuario' }}</h2>
         <form @submit.prevent="createUser">
           <div>
             <label for="name">Nombre:</label>
@@ -67,7 +67,7 @@
           <button type="button" @click="closeModal">Cancelar</button>
         </form>
         <div v-if="isLoading" class="spinner">
-          <span>Cargando...</span> <!-- Aquí puedes agregar un spinner gráfico si deseas -->
+          <span>Cargando...</span>
         </div>
       </div>
     </div>
@@ -83,13 +83,14 @@ import { useHead } from '@vueuse/head'
 const users = ref([])
 const isModalOpen = ref(false)
 const newUser = ref({
+  id: null, 
   name: '',
   lastname: '',
   email: '',
   role: '',
   password: ''
 })
-const isLoading = ref(false) // Estado para el spinner
+const isLoading = ref(false)
 
 useHead({
   title: 'Usuarios'
@@ -111,32 +112,45 @@ const formatDate = (dateString: string) => {
 
 // Funciones para abrir y cerrar el modal
 const openModal = () => {
+  resetNewUser();
   isModalOpen.value = true
 }
 
 const closeModal = () => {
   isModalOpen.value = false
-  resetNewUser() // Resetea el formulario
 }
 
-// Función para crear un nuevo usuario
+// Función para crear o actualizar un usuario
 const createUser = async () => {
-  isLoading.value = true // Activa el spinner
+  isLoading.value = true
   try {
-    const response = await axios.post('http://127.0.0.1:8000/api/users', newUser.value)
-    users.value.push(response.data) // Agrega el nuevo usuario a la lista
-    closeModal() // Cierra el modal después de guardar
-    location.reload(); // Recarga la página para ver el nuevo usuario
+    let response;
+    if (newUser.value.id) {
+      // Si newUser tiene un ID, se actualiza el usuario
+      response = await axios.put(`http://127.0.0.1:8000/api/users/${newUser.value.id}`, newUser.value);
+      const index = users.value.findIndex(user => user.id === newUser.value.id);
+      if (index !== -1) {
+        users.value[index] = response.data;
+      }
+    } else {
+      // Si no tiene ID, se crea un nuevo usuario
+      response = await axios.post('http://127.0.0.1:8000/api/users', newUser.value);
+      users.value.push(response.data);
+    }
+    
+    closeModal();
+    location.reload();
   } catch (error) {
-    console.error('Error al crear el usuario:', error)
+    console.error('Error al guardar el usuario:', error);
   } finally {
-    isLoading.value = false; // Desactiva el spinner
+    isLoading.value = false;
   }
 }
 
 // Función para reiniciar el objeto newUser
 const resetNewUser = () => {
   newUser.value = {
+    id: null,
     name: '',
     lastname: '',
     email: '',
@@ -149,11 +163,24 @@ const resetNewUser = () => {
 onMounted(fetchUsers)
 
 const editUser = (id: number) => {
-  console.log('Editar usuario con ID:', id)
+  const userToEdit = users.value.find(user => user.id === id);
+  if (userToEdit) {
+    newUser.value = { ...userToEdit }; 
+    isModalOpen.value = true; 
+  }
 }
 
-const deleteUser = (id: number) => {
-  console.log('Eliminar usuario con ID:', id)
+const deleteUser = async (id: number) => {
+  const confirmDelete = confirm('¿Estás seguro de que deseas eliminar este usuario?');
+  if (!confirmDelete) return; 
+
+  try {
+    // Realiza la solicitud DELETE a la API
+    await axios.delete(`http://127.0.0.1:8000/api/users/${id}`);
+    location.reload();
+  } catch (error) {
+    console.error('Error al eliminar el usuario:', error);
+  }
 }
 </script>
 
