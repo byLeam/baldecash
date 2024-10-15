@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@vueuse/head": "^2.0.0",
+    "axios": "^1.7.7",
+    "dayjs": "^1.11.13",
     "nuxt": "^3.13.0",
     "vue": "latest",
     "vue-router": "latest"
