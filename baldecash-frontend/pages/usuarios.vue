@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1>Usuarios</h1>
-    <button @click="openModal">Crear Usuario</button>
+    <button class="btn create" @click="openModal">Crear Usuario</button>
     <table>
       <thead>
         <tr>
@@ -26,8 +26,8 @@
           <td>{{ user.role }}</td>
           <td>{{ formatDate(user.created_at) }}</td>
           <td>
-            <button @click="editUser(user.id)">Editar</button>
-            <button @click="deleteUser(user.id)">Eliminar</button>
+            <button class="btn edit" @click="editUser(user.id)">Editar</button>
+            <button class="btn delete" @click="deleteUser(user.id)">Eliminar</button>
           </td>
         </tr>
       </tbody>
@@ -63,8 +63,8 @@
             <label for="password">Contraseña:</label>
             <input type="text" v-model="newUser.password" required />
           </div>
-          <button type="submit" :disabled="isLoading">Guardar</button>
-          <button type="button" @click="closeModal">Cancelar</button>
+          <button class="btn submit" type="submit" :disabled="isLoading">Guardar</button>
+          <button class="btn cancel" type="button" @click="closeModal">Cancelar</button>
         </form>
         <div v-if="isLoading" class="spinner">
           <span>Cargando...</span>
@@ -126,14 +126,12 @@ const createUser = async () => {
   try {
     let response;
     if (newUser.value.id) {
-      // Si newUser tiene un ID, se actualiza el usuario
       response = await axios.put(`http://127.0.0.1:8000/api/users/${newUser.value.id}`, newUser.value);
       const index = users.value.findIndex(user => user.id === newUser.value.id);
       if (index !== -1) {
         users.value[index] = response.data;
       }
     } else {
-      // Si no tiene ID, se crea un nuevo usuario
       response = await axios.post('http://127.0.0.1:8000/api/users', newUser.value);
       users.value.push(response.data);
     }
@@ -147,7 +145,6 @@ const createUser = async () => {
   }
 }
 
-// Función para reiniciar el objeto newUser
 const resetNewUser = () => {
   newUser.value = {
     id: null,
@@ -159,7 +156,6 @@ const resetNewUser = () => {
   }
 }
 
-// Llama a la función cuando el componente se monte
 onMounted(fetchUsers)
 
 const editUser = (id: number) => {
@@ -175,7 +171,6 @@ const deleteUser = async (id: number) => {
   if (!confirmDelete) return; 
 
   try {
-    // Realiza la solicitud DELETE a la API
     await axios.delete(`http://127.0.0.1:8000/api/users/${id}`);
     location.reload();
   } catch (error) {
@@ -185,62 +180,120 @@ const deleteUser = async (id: number) => {
 </script>
 
 <style>
-  /* Estilos básicos para la tabla */
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
+/* Estilos básicos para la tabla */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
 
-  th, td {
-    border: 1px solid #ccc;
-    padding: 8px;
-    text-align: left;
-  }
+th, td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+}
 
-  th {
-    background-color: #f4f4f4;
-  }
+th {
+  background-color: #f4f4f4;
+}
 
-  /* Estilos para el modal */
-  .modal {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-  }
+/* Estilos para los botones */
+.btn {
+  padding: 10px 15px;
+  margin: 5px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s, transform 0.3s;
+}
 
-  .modal-content {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
+.btn:hover {
+  transform: scale(1.05);
+}
 
-  .close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-  }
+.btn.create {
+  background-color: #0969DA;
+  color: white;
+}
 
-  .close:hover,
-  .close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
-  }
+.btn.edit {
+  background-color: #007bff;
+  color: white;
+}
 
-  /* Estilo para el spinner */
-  .spinner {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 10px;
-  }
+.btn.edit:hover {
+  background-color: #0056b3;
+}
+
+.btn.delete {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn.delete:hover {
+  background-color: #c82333;
+}
+
+.btn.submit {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn.submit:hover {
+  background-color: #218838;
+}
+
+.btn.cancel {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn.cancel:hover {
+  background-color: #5a6268;
+}
+
+/* Estilos para el modal */
+.modal {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  width: 400px; /* Ancho fijo para el modal */
+  position: relative; /* Para el posicionamiento del botón de cierre */
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Estilo para el spinner */
+.spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+}
 </style>
